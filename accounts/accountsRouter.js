@@ -40,7 +40,7 @@ router.get('/:id', (req, res) => {
       }
     })
     .catch(error => {
-      res.status(500).json(error);
+      res.status(500).json({errorMessage:'Could not retrieve account data'});
     });
 });
 
@@ -48,7 +48,13 @@ router.post('/', (req, res) => {
   const accountData = req.body;
   // validate
   if(!accountData.name || !accountData.budget){
-    res.status(400).json({errorMessage:'PLease provide a name and budget.'})
+    res.status(400).json({errorMessage:'Please provide a name and budget.'})
+  }
+  if(typeof accountData.name !== 'string'){
+    res.status(400).json({errorMessage:'name provided is not a string'})
+  }
+  if(typeof accountData.budget !== 'number'){
+    res.status(400).json({errorMessage:'budget provided is not a number'})
   }
   db('accounts')
     .insert(accountData, 'id')
@@ -56,11 +62,24 @@ router.post('/', (req, res) => {
       res.status(200).json(ids);
     })
     .catch(error => {
-      res.status(500).json(error);
+      if(error.errno === 19){
+        res.status(500).json({errorMessage:'The name field needs to be unique'});
+      } else {
+        res.status(500).json({errorMessage:'There was an error updating the account'});
+      }
     });
 });
 
 router.put('/:id', (req, res) => {
+  if(req.body.name || req.body.budget){
+    if(req.body.name && typeof req.body.name !== 'string')
+      res.status(400).json({errorMessage:'name provided is not a string'})
+    if(req.body.budget && typeof req.body.budget !== 'number')
+      res.status(400).json({errorMessage:'budget provided is not a number'})
+
+  } else {
+    res.status(400).json({errorMessage:'Please provide a name or budget.'})
+  }
   db('accounts')
     .where({ id: req.params.id })
     .update(req.body)
@@ -72,7 +91,11 @@ router.put('/:id', (req, res) => {
       }
     })
     .catch(error => {
-      res.status(500).json(error);
+      if(error.errno === 19){
+        res.status(500).json({errorMessage:'The name field needs to be unique'});
+      } else {
+        res.status(500).json({errorMessage:'There was an error updating the account'});
+      }
     });
 });
 
