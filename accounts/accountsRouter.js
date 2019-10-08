@@ -107,7 +107,7 @@ router.delete('/:id', (req, res) => {
       res.status(200).json(count);
     })
     .catch(error => {
-      res.status(500).json(error);
+      res.status(500).json({errorMessage:'There was an error deleting the account'});
     });
 });
 
